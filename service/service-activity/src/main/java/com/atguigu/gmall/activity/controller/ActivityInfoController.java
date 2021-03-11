@@ -53,7 +53,6 @@ public class ActivityInfoController {
     public Result getById(@PathVariable Long id){
         //  调用方法
         ActivityInfo activityInfo = activityInfoService.getById(id);
-        activityInfo.setActivityTypeString(ActivityType.getNameByType(activityInfo.getActivityType()));
         //  返回数据
         return Result.ok(activityInfo);
     }

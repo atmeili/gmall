@@ -27,9 +27,9 @@ public class SkuInfo extends BaseEntity {
 	//		setId(skuId);
 	//	}
 	//	判断去重的话，自动调用equals 方法。
-		public boolean equals(SkuInfo skuInfo){
-			return getId().equals(skuInfo.getId());
-		}
+	//		public boolean equals(SkuInfo skuInfo){
+	//	//			return getId().equals(skuInfo.getId());
+	//	//		}
 
 	private static final long serialVersionUID = 1L;
 	
