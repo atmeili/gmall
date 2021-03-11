@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper SYSTEM "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<!--有个非必要属性namespace指的是接口的全路径-->
+<mapper namespace="com.atguigu.gmall.product.mapper.BaseAttrInfoMapper">
+    <!--表示自定义映射结果集
+        id:表示resultMap的唯一标识
+        type:映射结果集返回的数据类型
+        autoMapping:表示自动映射 {实体类与数据的字段名称}
+    -->
+    <resultMap id="baseAttrInfoMap" type="com.atguigu.gmall.model.product.BaseAttrInfo" autoMapping="true">
+        <!--
+            id：表示主键
+            property：实体类的属性
+            column：表示通过sql 语句执行之后的字段名
+        -->
+        <id property="id" column="id"></id>
+        <!--
+            result:普通字段
+        -->
+        <!--<result property="attrName" column="attr_name"></result>
+        <result property="attrName" column="attr_name"></result>
+        <result property="attrName" column="attr_name"></result>-->
+
+        <!--
+            在BaseAttrInfo 中有个属性 private List<BaseAttrValue> attrValueList; 这个属性没有在数据库中
+            平台属性：平台属性值：
+            1：n === 配置mybatis 的1：n
+        -->
+        <!--
+            collection: mybatis 配置1对n的写法
+            property：实体类的属性
+            ofType：表示返回值的类型
+        -->
+        <collection property="attrValueList" ofType="com.atguigu.gmall.model.product.BaseAttrValue" autoMapping="true">
+            <!--如果有id 重名的话，则需要给column 起个别名-->
+            <id property="id" column="attr_value_id"></id>
+        </collection>
+    </resultMap>
+
+    <!--查询方法
+        id:方法名称
+        resultMap：表示返回的映射结果集
+        resultType: 表示查询之后返回的类型
+        标签内部写sql 语句
+    -->
+    <select id="selectBaseAttrInfoList" resultMap="baseAttrInfoMap">
+        select
+            bai.id,
+               bai.attr_name,
+               bai.category_id,
+               bai.category_level,
+               bav.id attr_value_id,
+               bav.value_name,
+               bav.attr_id
+        from base_attr_info bai inner join base_attr_value bav
+        on bai.id = bav.attr_id
+        <where>
+            <if test="category1Id != null and category1Id != 0">
+                or (bai.category_id = #{category1Id} and category_level = 1)
+            </if>
+            <if test="category2Id != null and category2Id != 0">
+                or (bai.category_id = #{category2Id} and category_level = 2)
+            </if>
+            <if test="category3Id != null and category3Id != 0">
+                or (bai.category_id = #{category3Id} and category_level = 3)
+            </if>
+        </where>
+        order by bai.category_level,bai.id
+    </select>
+
+    <select id="selectAttrListBySkuId" resultMap="baseAttrInfoMap">
+        select
+               bai.id,
+               bai.attr_name,
+               bai.category_id,
+               bai.category_level,
+               bav.id attr_value_id,
+               bav.value_name,
+               bav.attr_id
+         from
+        base_attr_info bai
+        inner join base_attr_value bav on bai.id=bav.attr_id
+        inner join sku_attr_value sav on sav.value_id=bav.id
+        where sav.sku_id=#{skuId};
+    </select>
+
+</mapper>
