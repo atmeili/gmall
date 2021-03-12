@@ -82,5 +82,36 @@ public interface ProductFeignClient {
     @GetMapping("/api/product/inner/getAttrList/{skuId}")
     List<BaseAttrInfo> getAttrList(@PathVariable("skuId") Long skuId);
 
+    //  根据关键字获取集合数据
+    @GetMapping("/api/product/inner/findSkuInfoByKeyword/{keyword}")
+    List<SkuInfo> findSkuInfoByKeyword(@PathVariable("keyword") String keyword);
+
+    //  根据skuId 集合获取数据
+    @PostMapping("/api/product/inner/findSkuInfoBySkuIdList")
+    List<SkuInfo> findSkuInfoBySkuIdList(@RequestBody List<Long> skuIdList);
+
+    /**
+     * 根据spuid列表获取spu列表，活动使用
+     * @param spuIdList
+     * @return
+     */
+    @PostMapping("/api/product/inner/findSpuInfoBySpuIdList")
+    List<SpuInfo> findSpuInfoBySpuIdList(@RequestBody List<Long> spuIdList);
+
+    /**
+     * 根据category3Id列表获取category3列表，活动使用
+     * @param category3IdList
+     * @return
+     */
+    @PostMapping("/api/product/inner/findBaseCategory3ByCategory3IdList")
+    List<BaseCategory3> findBaseCategory3ByCategory3IdList(@RequestBody List<Long> category3IdList);
+
+    /**
+     * 根据trademarkId列表获取trademark列表，活动使用
+     * @param trademarkIdList
+     * @return
+     */
+    @PostMapping("/admin/product/baseTrademark/inner/findBaseTrademarkByTrademarkIdList")
+    List<BaseTrademark> findBaseTrademarkByTrademarkIdList(@RequestBody List<Long> trademarkIdList);
 
 }

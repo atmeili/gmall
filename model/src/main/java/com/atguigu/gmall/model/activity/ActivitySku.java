@@ -26,9 +26,9 @@ public class ActivitySku extends BaseEntity {
    private Long skuId;
 
    @ApiModelProperty(value = "创建时间")
-   @TableField("start_time")
+   @TableField("create_time")
    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-   private Date startTime;
+   private Date createTime;
 
 
 }

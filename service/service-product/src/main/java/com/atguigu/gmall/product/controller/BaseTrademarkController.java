@@ -9,6 +9,8 @@ import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * @author mqx
  * @date 2021-2-2 09:14:33
@@ -78,6 +80,16 @@ public class BaseTrademarkController {
         return Result.ok(baseTrademarkService.list(null));
     }
 
+    //  根据名称查询数据
+    @GetMapping("findBaseTrademarkByKeyword/{keyword}")
+    public Result findBaseTrademarkByKeyword(@PathVariable String keyword){
+        //  调用服务层方法
+        return Result.ok(baseTrademarkService.findBaseTrademarkByKeyword(keyword));
+    }
 
+    @PostMapping("inner/findBaseTrademarkByTrademarkIdList")
+    public List<BaseTrademark> findBaseTrademarkByTrademarkIdList(@RequestBody List<Long> trademarkIdList){
 
+        return baseTrademarkService.findBaseTrademarkByTrademarkIdList(trademarkIdList);
+    }
 }

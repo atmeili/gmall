@@ -56,4 +56,29 @@ public class ProductDegradeFeignClient implements ProductFeignClient {
         return null;
     }
 
+    @Override
+    public List<SkuInfo> findSkuInfoByKeyword(String keyword) {
+        return null;
+    }
+
+    @Override
+    public List<SkuInfo> findSkuInfoBySkuIdList(List<Long> skuIdList) {
+        return null;
+    }
+
+    @Override
+    public List<SpuInfo> findSpuInfoBySpuIdList(List<Long> spuIdList) {
+        return null;
+    }
+
+    @Override
+    public List<BaseCategory3> findBaseCategory3ByCategory3IdList(List<Long> category3IdList) {
+        return null;
+    }
+
+    @Override
+    public List<BaseTrademark> findBaseTrademarkByTrademarkIdList(List<Long> trademarkIdList) {
+        return null;
+    }
+
 }

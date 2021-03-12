@@ -76,6 +76,14 @@ public class SpuManageController {
         return Result.ok(spuSaleAttrList);
     }
 
+    //  根据关键字查询spuInfoList
+    @GetMapping("findSpuInfoByKeyword/{keyword}")
+    public Result findSpuInfoByKeyword(@PathVariable String keyword){
+        //  调用服务层方法
+        List<SpuInfo> spuInfoList = manageService.findSpuInfoByKeyword(keyword);
+        return Result.ok(spuInfoList);
+    }
 
+    //
 
 }

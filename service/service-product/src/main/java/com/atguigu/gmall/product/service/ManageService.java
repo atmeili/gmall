@@ -149,4 +149,39 @@ public interface ManageService {
     List<BaseAttrInfo> getAttrList(Long skuId );
 
 
+    /**
+     * 根据关键字进行查询
+     * @param keyword
+     * @return
+     */
+    List<SkuInfo> findSkuInfoByKeyword(String keyword);
+
+    /**
+     * 获取数据
+     * @param skuIdList
+     * @return
+     */
+    List<SkuInfo> findSkuInfoBySkuIdList(List<Long> skuIdList);
+
+    /**
+     *
+     * @param keyword
+     * @return
+     */
+    List<SpuInfo> findSpuInfoByKeyword(String keyword);
+
+    /**
+     *
+     * @param spuIdList
+     * @return
+     */
+    List<SpuInfo> findSpuInfoBySpuIdList(List<Long> spuIdList);
+
+    /**
+     *
+     * @param category3IdList
+     * @return
+     */
+    List<BaseCategory3> findBaseCategory3ByCategory3IdList(List<Long> category3IdList);
+
 }

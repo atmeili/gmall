@@ -23,4 +23,17 @@ public interface ActivityInfoService extends IService<ActivityInfo> {
     //  保存数据：
     void saveActivityRule(ActivityRuleVo activityRuleVo);
 
+    /**
+     * 根据关键词检索数据
+     * @param keyword
+     * @return
+     */
+    List<SkuInfo> findSkuInfoByKeyword(String keyword);
+
+    /**
+     * 获取数据
+     * @param activityId
+     * @return
+     */
+    Map<String, Object> findActivityRuleList(Long activityId);
 }

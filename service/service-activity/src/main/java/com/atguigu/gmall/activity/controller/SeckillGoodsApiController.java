@@ -173,8 +173,9 @@ public class SeckillGoodsApiController {
     }
 
     //  这个控制器是谁？ /auth/submitOrder
-    @PostMapping("/auth/submitOrder")
+    @PostMapping(   "/auth/submitOrder")
     public Result submitOrder(@RequestBody OrderInfo orderInfo,HttpServletRequest request){
+        //  如果有人伪造： 删除setnex()! 验证价格!
         //  获取到用户Id
         String userId = AuthContextHolder.getUserId(request);
         orderInfo.setUserId(Long.parseLong(userId));

@@ -81,5 +81,32 @@ public class ProductApiController {
         return manageService.getAttrList(skuId);
     }
 
+    @GetMapping("inner/findSkuInfoByKeyword/{keyword}")
+    public List<SkuInfo> findSkuInfoByKeyword(@PathVariable String keyword){
+        //  获取到所有的商品集合列表
+        return manageService.findSkuInfoByKeyword(keyword);
+    }
+
+    //  封装一个控制器：
+    @PostMapping("inner/findSkuInfoBySkuIdList")
+    public List<SkuInfo> findSkuInfoBySkuIdList(@RequestBody List<Long> skuIdList){
+        //  调用服务层方法
+        return manageService.findSkuInfoBySkuIdList(skuIdList);
+    }
+
+    //  获取到spuInfoList
+    @PostMapping("inner/findSpuInfoBySpuIdList")
+    public List<SpuInfo> findSpuInfoBySpuIdList(@RequestBody List<Long> spuIdList){
+        //  调用服务层方法
+        return manageService.findSpuInfoBySpuIdList(spuIdList);
+    }
+    //  获取三级分类
+    @PostMapping("inner/findBaseCategory3ByCategory3IdList")
+    public List<BaseCategory3> findBaseCategory3ByCategory3IdList(@RequestBody List<Long> category3IdList){
+        //  调用服务层方法
+        return manageService.findBaseCategory3ByCategory3IdList(category3IdList);
+    }
+    //
+
 }
 

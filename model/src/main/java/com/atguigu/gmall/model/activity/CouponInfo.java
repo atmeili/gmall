@@ -88,9 +88,11 @@ public class CouponInfo extends BaseEntity {
    @TableField("range_desc")
    private String rangeDesc;
 
+   // 优惠券的类型
    @TableField(exist = false)
    private String couponTypeString;
 
+   // 优惠券的使用范围
    @TableField(exist = false)
    private String rangeTypeString;
 

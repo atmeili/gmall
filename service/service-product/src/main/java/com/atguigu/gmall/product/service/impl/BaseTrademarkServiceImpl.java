@@ -10,6 +10,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * @author mqx
  * @date 2021-2-2 09:11:45
@@ -32,7 +34,18 @@ public class BaseTrademarkServiceImpl extends ServiceImpl<BaseTrademarkMapper,Ba
         return baseTrademarkMapper.selectPage(baseTrademarkPage,baseTrademarkQueryWrapper);
     }
 
-    //  实现save 方法
+    @Override
+    public List<BaseTrademark> findBaseTrademarkByKeyword(String keyword) {
 
-    //  实现remove 方法
+        //  创建查询条件
+        QueryWrapper<BaseTrademark> baseTrademarkQueryWrapper = new QueryWrapper<>();
+        baseTrademarkQueryWrapper.like("tm_name",keyword);
+        return baseTrademarkMapper.selectList(baseTrademarkQueryWrapper);
+    }
+
+    @Override
+    public List<BaseTrademark> findBaseTrademarkByTrademarkIdList(List<Long> trademarkIdList) {
+        return baseTrademarkMapper.selectBatchIds(trademarkIdList);
+    }
+
 }

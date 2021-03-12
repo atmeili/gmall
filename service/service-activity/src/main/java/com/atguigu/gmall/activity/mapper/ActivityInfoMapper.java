@@ -14,4 +14,6 @@ import java.util.List;
 @Mapper
 public interface ActivityInfoMapper extends BaseMapper<ActivityInfo> {
 
+    //  根据skuId集合获取对应哪些skuId 是在参与活动！
+    List<Long> selectExistSkuIdList(@Param("skuIdList") List<Long> skuIdList);
 }

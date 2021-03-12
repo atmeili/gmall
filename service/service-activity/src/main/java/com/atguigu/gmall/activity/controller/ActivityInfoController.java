@@ -9,6 +9,7 @@ import com.atguigu.gmall.model.product.SkuInfo;
 import com.atguigu.gmall.product.client.ProductFeignClient;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -49,10 +50,13 @@ public class ActivityInfoController {
     }
 
     //  根据Id 获取到活动对象
+    //  http://localhost/admin/activity/activityInfo/get/3
     @GetMapping("get/{id}")
     public Result getById(@PathVariable Long id){
         //  调用方法
         ActivityInfo activityInfo = activityInfoService.getById(id);
+        //  回显数据类型失败！
+        activityInfo.setActivityTypeString(ActivityType.getNameByType(activityInfo.getActivityType()));
         //  返回数据
         return Result.ok(activityInfo);
     }
@@ -90,5 +94,22 @@ public class ActivityInfoController {
         activityInfoService.saveActivityRule(activityRuleVo);
         //  返回结果
         return Result.ok();
+    }
+
+    //  查询活动范围列表
+    //  后台页面
+    @GetMapping("findSkuInfoByKeyword/{keyword}")
+    public Result findSkuInfoByKeyword(@PathVariable String keyword){
+        //  调用服务层方法
+        List<SkuInfo> skuInfoList = activityInfoService.findSkuInfoByKeyword(keyword);
+        return Result.ok(skuInfoList);
+    }
+
+    //  回显活动数据：
+    @GetMapping("findActivityRuleList/{id}")
+    public Result findActivityRuleList(@PathVariable Long id){
+        //  调用服务层方法
+        Map<String,Object> map =  activityInfoService.findActivityRuleList(id);
+        return Result.ok(map);
     }
 }

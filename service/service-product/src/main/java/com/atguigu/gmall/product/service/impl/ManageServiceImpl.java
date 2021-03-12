@@ -631,4 +631,35 @@ public class ManageServiceImpl implements ManageService {
         return baseAttrInfoMapper.selectAttrListBySkuId(skuId);
     }
 
+    @Override
+    public List<SkuInfo> findSkuInfoByKeyword(String keyword) {
+        //  模糊查询：
+        QueryWrapper<SkuInfo> skuInfoQueryWrapper = new QueryWrapper<>();
+        skuInfoQueryWrapper.like("sku_name",keyword);
+        return skuInfoMapper.selectList(skuInfoQueryWrapper);
+    }
+
+    @Override
+    public List<SkuInfo> findSkuInfoBySkuIdList(List<Long> skuIdList) {
+        return skuInfoMapper.selectBatchIds(skuIdList);
+    }
+
+    @Override
+    public List<SpuInfo> findSpuInfoByKeyword(String keyword) {
+        //  根据名称进行查询
+        QueryWrapper<SpuInfo> spuInfoQueryWrapper = new QueryWrapper<>();
+        spuInfoQueryWrapper.like("spu_name",keyword);
+        return spuInfoMapper.selectList(spuInfoQueryWrapper);
+    }
+
+    @Override
+    public List<SpuInfo> findSpuInfoBySpuIdList(List<Long> spuIdList) {
+        return spuInfoMapper.selectBatchIds(spuIdList);
+    }
+
+    @Override
+    public List<BaseCategory3> findBaseCategory3ByCategory3IdList(List<Long> category3IdList) {
+        return baseCategory3Mapper.selectBatchIds(category3IdList);
+    }
+
 }
