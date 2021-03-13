@@ -96,4 +96,5 @@ public class CouponInfoController {
         return Result.ok(couponInfoService.findCouponByKeyword(keyword));
     }
 
+
 }

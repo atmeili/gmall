@@ -4,13 +4,18 @@ import com.atguigu.gmall.activity.mapper.CouponInfoMapper;
 import com.atguigu.gmall.activity.mapper.CouponRangeMapper;
 import com.atguigu.gmall.activity.mapper.CouponUseMapper;
 import com.atguigu.gmall.activity.service.CouponInfoService;
+import com.atguigu.gmall.common.execption.GmallException;
+import com.atguigu.gmall.common.result.ResultCodeEnum;
 import com.atguigu.gmall.model.activity.CouponInfo;
 import com.atguigu.gmall.model.activity.CouponRange;
 import com.atguigu.gmall.model.activity.CouponRuleVo;
+import com.atguigu.gmall.model.activity.CouponUse;
 import com.atguigu.gmall.model.enums.CouponRangeType;
+import com.atguigu.gmall.model.enums.CouponStatus;
 import com.atguigu.gmall.model.enums.CouponType;
 import com.atguigu.gmall.model.product.BaseCategory3;
 import com.atguigu.gmall.model.product.BaseTrademark;
+import com.atguigu.gmall.model.product.SkuInfo;
 import com.atguigu.gmall.model.product.SpuInfo;
 import com.atguigu.gmall.product.client.ProductFeignClient;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -22,9 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -152,5 +155,69 @@ public class CouponInfoServiceImpl extends ServiceImpl<CouponInfoMapper, CouponI
         QueryWrapper<CouponInfo> couponInfoQueryWrapper = new QueryWrapper<>();
         couponInfoQueryWrapper.like("coupon_name",keyword);
         return couponInfoMapper.selectList(couponInfoQueryWrapper);
+    }
+
+    @Override
+    public List<CouponInfo> findCouponInfo(Long skuId, Long activityId, Long userId) {
+        //  获取skuInfo
+        SkuInfo skuInfo = productFeignClient.getSkuInfo(skuId);
+        if (skuInfo==null) return new ArrayList<>();
+
+        //  获取普通优惠券：与活动没有关系！
+        List<CouponInfo> couponInfoList = couponInfoMapper.selectCouponInfoList(skuInfo.getSpuId(), skuInfo.getCategory3Id(), skuInfo.getTmId(), userId);
+        //  activityId 判断这个优惠券与活动的关系！
+        if (activityId!=null){
+            //  有活动,获取优惠券列表！ 范围： spu,三级分类Id,品牌
+            List<CouponInfo> activityCouponInfoList = couponInfoMapper.selectActivityCouponInfoList(skuInfo.getSpuId(), skuInfo.getCategory3Id(), skuInfo.getTmId(), activityId, userId);
+            //  做一个合并
+            couponInfoList.addAll(activityCouponInfoList);
+        }
+
+        return couponInfoList;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void getCouponInfo(Long userId, Long couponId) {
+        // 判断当前优惠券是否已经领完
+        CouponInfo couponInfo = this.getById(couponId);
+        //  判断是否还有剩余 10
+        if (couponInfo.getTakenCount()>=couponInfo.getLimitNum()){
+            throw new GmallException(ResultCodeEnum.COUPON_LIMIT_GET);
+        }
+        // 判断这个用户是否已经领用过！
+        QueryWrapper<CouponUse> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("coupon_id",couponId);
+        queryWrapper.eq("user_id",userId);
+        Integer count = couponUseMapper.selectCount(queryWrapper);
+        if (count>0) {
+            throw new GmallException(ResultCodeEnum.COUPON_GET);
+        }
+        //        CouponInfo couponInfoQuery = couponInfoMapper.selectOne(couponInfoQueryWrapper);
+        //        if (couponInfoQuery!=null){
+        //            throw new GmallException(ResultCodeEnum.COUPON_GET);
+        //        }
+
+        //  更新数据
+        int takenCout = couponInfo.getTakenCount()+1;
+        couponInfo.setTakenCount(takenCout);
+        //  更新数据
+        couponInfoMapper.updateById(couponInfo);
+
+        //  插入数据到coupon_use
+        CouponUse couponUse = new CouponUse();
+        couponUse.setCouponId(couponId);
+        couponUse.setUserId(userId);
+        couponUse.setCouponStatus(CouponStatus.NOT_USED.name());
+        couponUse.setGetTime(new Date());
+        couponUse.setExpireTime(couponInfo.getExpireTime());
+
+        couponUseMapper.insert(couponUse);
+    }
+
+    @Override
+    public IPage<CouponInfo> getPageByUserId(Page<CouponInfo> couponInfoPage, Long userId) {
+        //  coupon_info,coupon_use
+        return couponInfoMapper.selectPageByUserId(couponInfoPage,userId);
     }
 }

@@ -83,16 +83,14 @@ public class ActivityInfoServiceImpl extends ServiceImpl<ActivityInfoMapper, Act
         //  获取到优惠券列表的Id集合
         List<Long> couponIdList = activityRuleVo.getCouponIdList();
         //  coupon_info.activity_id = 赋值！
-        for (Long couponId : couponIdList) {
-            CouponInfo couponInfo = couponInfoService.getById(couponId);
-            couponInfo.setActivityId(0L);
-            //  更新 update coupon_info set activity_id = 0L where activity_id = ?
-            //        QueryWrapper<CouponInfo> couponInfoQueryWrapper = new QueryWrapper<>();
-            //        couponInfoQueryWrapper.eq("activity_id",activityRuleVo.getActivityId());
-            //  couponInfoMapper.update(couponInfo,couponInfoQueryWrapper);
-            couponInfoMapper.updateById(couponInfo);
-        }
-
+        //  先接触绑定！
+        //  接触绑定的时候：couponIdList 是空的！ 传递数据的时候一定会有一个活动Id
+        //  根据活动Id 进行更新  update coupon_info set activity_id = 0 where activity_id = activityRuleVo.getActivityId();
+        QueryWrapper<CouponInfo> couponInfoQueryWrapper = new QueryWrapper<>();
+        CouponInfo couponInfo = new CouponInfo();
+        couponInfo.setActivityId(0L);
+        couponInfoQueryWrapper.eq("activity_id",activityRuleVo.getActivityId());
+        couponInfoMapper.update(couponInfo,couponInfoQueryWrapper);
 
         //  保存数据：
         List<ActivitySku> activitySkuList = activityRuleVo.getActivitySkuList();
@@ -111,12 +109,13 @@ public class ActivityInfoServiceImpl extends ServiceImpl<ActivityInfoMapper, Act
         }
 
         //  如果这个集合不为空！
-        if(CollectionUtils.isEmpty(couponIdList)){
+        if(!CollectionUtils.isEmpty(couponIdList)){
             //  循环
             for (Long couponId : couponIdList) {
-//                CouponInfo couponInfoUp = new CouponInfo();
-//                couponInfoUp.setId(couponId);
-                CouponInfo couponInfoUp = couponInfoService.getById(couponId);
+                CouponInfo couponInfoUp = new CouponInfo();
+                couponInfoUp.setId(couponId);
+//                CouponInfo couponInfoUp = couponInfoService.getById(couponId);
+//                CouponInfo couponInfoUp = couponInfoMapper.selectById(couponId);
                 couponInfoUp.setActivityId(activityRuleVo.getActivityId());
                 couponInfoMapper.updateById(couponInfoUp);
             }
@@ -177,7 +176,22 @@ public class ActivityInfoServiceImpl extends ServiceImpl<ActivityInfoMapper, Act
         List<SkuInfo> skuInfoList = productFeignClient.findSkuInfoBySkuIdList(skuIdList);
 
         map.put("skuInfoList",skuInfoList);
+
+        //  回显绑定的优惠券！
+        //  优惠券在这个表中 coupon_info
+        List<CouponInfo> couponInfoList = couponInfoMapper.selectList(new QueryWrapper<CouponInfo>().eq("activity_id", activityId));
+        map.put("couponInfoList",couponInfoList);
         return map;
     }
+
+    @Override
+    public List<ActivityRule> findActivityRule(Long skuId) {
+        //  声明集合对象
+        //  activity_rule，activity_sku，activity_info
+        List<ActivityRule> activityRuleList = activityInfoMapper.selectActivityRuleList(skuId);
+        //  返回数据
+        return activityRuleList;
+    }
+
 
 }

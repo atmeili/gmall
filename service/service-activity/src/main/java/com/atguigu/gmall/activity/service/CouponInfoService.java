@@ -38,4 +38,28 @@ public interface CouponInfoService extends IService<CouponInfo> {
      * @return
      */
     List<CouponInfo> findCouponByKeyword(String keyword);
+
+    /**
+     * 获取优惠券信息
+     * @param skuId 获取skuInfo
+     * @param activityId 判断优惠券与活动是否有关系
+     * @param userId 判断这个用户是否领用
+     * @return
+     */
+    List<CouponInfo> findCouponInfo(Long skuId, Long activityId, Long userId);
+
+    /**
+     * 领取优惠券
+     * @param userId
+     * @param couponId
+     */
+    void getCouponInfo(Long userId, Long couponId);
+
+    /**
+     * 根据用户Id 查询优惠券列表
+     * @param couponInfoPage
+     * @param userId
+     * @return
+     */
+    IPage<CouponInfo> getPageByUserId(Page<CouponInfo> couponInfoPage, Long userId);
 }
