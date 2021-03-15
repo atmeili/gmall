@@ -52,7 +52,7 @@ public interface ActivityInfoService extends IService<ActivityInfo> {
      * @param cartInfoList
      * @return
      */
-    List<CarInfoVo> findCartActivityRuleMap(List<CartInfo> cartInfoList);
+    List<CarInfoVo> findCartActivityRuleMap(List<CartInfo> cartInfoList, Map<Long, Long> skuIdToActivityIdMap);
 
 
 }

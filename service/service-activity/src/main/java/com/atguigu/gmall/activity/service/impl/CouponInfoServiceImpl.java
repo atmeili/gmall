@@ -164,7 +164,7 @@ public class CouponInfoServiceImpl extends ServiceImpl<CouponInfoMapper, CouponI
         SkuInfo skuInfo = productFeignClient.getSkuInfo(skuId);
         if (skuInfo==null) return new ArrayList<>();
 
-        //  获取普通优惠券：与活动没有关系！
+        //  获取普通优惠券：与活动没有关系！ null 或者 0 普通优惠券！
         List<CouponInfo> couponInfoList = couponInfoMapper.selectCouponInfoList(skuInfo.getSpuId(), skuInfo.getCategory3Id(), skuInfo.getTmId(), userId);
         //  activityId 判断这个优惠券与活动的关系！
         if (activityId!=null){
@@ -177,6 +177,7 @@ public class CouponInfoServiceImpl extends ServiceImpl<CouponInfoMapper, CouponI
         return couponInfoList;
     }
 
+    //  提交数据的时候： 我们走的页面 2.00
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void getCouponInfo(Long userId, Long couponId) {
@@ -231,6 +232,17 @@ public class CouponInfoServiceImpl extends ServiceImpl<CouponInfoMapper, CouponI
      */
     @Override
     public Map<Long, List<CouponInfo>> findCartCouponInfo(List<CartInfo> cartInfoList, Map<Long, Long> skuIdToActivityIdMap, Long userId) {
+        //  记录优惠券使用范围 spuId,tmId,category3Id 暂时存在到 map 中！
+        //  map key=  value= "range:1:" + skuInfo.getSpuId() tmId category3Id  value = skuIdList
+        Map<String, List<Long>> rangeToSkuIdMap = new HashMap<>();
+        for (CartInfo cartInfo : cartInfoList) {
+            //  获取到对应的skuInfo
+            SkuInfo skuInfo = productFeignClient.getSkuInfo(cartInfo.getSkuId());
+            //  skuInfo 获取范围类型用的。
+            //  skuInfo 包含spuId,tmId,category3Id;
+            this.setRuleData(skuInfo,rangeToSkuIdMap);
+        }
+
         /**
          * rangeType(范围类型)  1:商品(spuId) 2:品类(category3Id) 3:品牌tmId
          * rangeId(范围id) spuId, categoryId , tmId,
@@ -249,15 +261,147 @@ public class CouponInfoServiceImpl extends ServiceImpl<CouponInfoMapper, CouponI
             SkuInfo skuInfo = productFeignClient.getSkuInfo(cartInfo.getSkuId());
             skuInfoList.add(skuInfo);
         }
+        if (CollectionUtils.isEmpty(skuInfoList)) return new HashMap<>();
+
         //  查询优惠券列表我们需要优惠券使用范围类型rangeType  rangeId  userId
+        //  这个优惠券中有rangeId 通过这个方法，可以给这个字段进行赋值coupon_range.range_id
         List<CouponInfo> allCouponInfoList = couponInfoMapper.selectCartCouponInfoList(skuInfoList,userId);
 
-        //
+        //  循环遍历所有的优惠券集合列表
+        for (CouponInfo couponInfo : allCouponInfoList) {
+            //  获取到对应的优惠券类型
+            String rangeType = couponInfo.getRangeType();
+            //  获取到对应的range_id
+            Long rangeId = couponInfo.getRangeId();
+            //  目的：key = skuId value = List<CouponInfo>
+            //  如何知道这个skuId 是否参与了活动！ skuIdToActivityIdMap key = skuId value = activityId
 
+            //  优惠券：活动优惠券{activityId 不为空} debug  + 普通优惠券
+            if (couponInfo.getActivityId()!=null){
+                //  声明一个skuIdList 集合
+                List<Long> skuIdList = new ArrayList<>();
+                //  skuIdToActivityIdMap 中存储的数据 参加活动的skuId
+                Iterator<Map.Entry<Long, Long>> iterator = skuIdToActivityIdMap.entrySet().iterator();
+                //  循环遍历当前的集合
+                while (iterator.hasNext()){
+                    Map.Entry<Long, Long> entry = iterator.next();
+                    Long skuId = entry.getKey();
+                    Long activityId = entry.getValue();
 
+                    //  判断你的活动Id 下 有哪些skuId 对应的优惠券 说明是同一个活动！
+                    if (couponInfo.getActivityId().intValue()==activityId.intValue()){
+                        //  找到skuId了,找到优惠券！
+                        //  优惠券：coupon_range.range_type coupon_range.range_id
+                        //  判断优惠券的类型： spuId,category3Id,tmId
+                        //  通过skuId 获取到skuInfo
+                        SkuInfo skuInfo = productFeignClient.getSkuInfo(skuId);
+                        //  判断优惠券的范围
+                        if (couponInfo.getRangeType().equals(CouponRangeType.SPU.name())){
+                            //  判断rageId
+                            if (couponInfo.getRangeId().intValue()==skuInfo.getSpuId().intValue()){
+                                //  记录这个skuId 属于哪个范围的优惠券！
+                                skuIdList.add(skuId);
+                            }
+                        }else if (couponInfo.getRangeType().equals(CouponRangeType.TRADEMARK.name())){
+                            if (couponInfo.getRangeId().intValue()==skuInfo.getTmId().intValue()){
+                                //  记录这个skuId 属于哪个范围的优惠券！
+                                skuIdList.add(skuId);
+                            }
+                        }else {
+                            if (couponInfo.getRangeId().intValue()==skuInfo.getCategory3Id().intValue()){
+                                //  记录这个skuId 属于哪个范围的优惠券！
+                                skuIdList.add(skuId);
+                            }
+                        }
+                    }
+                }
+                //  属于活动优惠券的！ 将这个skuIdList 集合 赋值给优惠券
+                couponInfo.setSkuIdList(skuIdList);
+            }else {
+                //  普通优惠券
+                //  判断使用范围 spuId
+                //  一个skuId 对应的优惠券使用范围：
+                if (rangeType.equals(CouponRangeType.SPU.name())){
+                    //  setRuleData 初始化优惠券使用范围的规则  rangeToSkuIdMap key=spuId,tmId,category3Id ,value=skuIdList
+                    //  "range:1:" + skuInfo.getSpuId()  因为 rangeId 这个字段对应的存储 ： spuId,tmId,category3Id
+                    couponInfo.setSkuIdList(rangeToSkuIdMap.get("range:1:" + rangeId));
+                }else if (rangeType.equals(CouponRangeType.TRADEMARK.name())){
+                    //  判断使用范围 tmId
+                    couponInfo.setSkuIdList(rangeToSkuIdMap.get("range:2:" + rangeId));
+                }else {
+                    //  category3Id
+                    couponInfo.setSkuIdList(rangeToSkuIdMap.get("range:3:" + rangeId));
+                }
+            }
+        }
+        //  给优惠券赋值：  优惠券对应的skuId列表
+        //  目的： map key = skuId  value = List<CouponInfo>
+        Map<Long, List<CouponInfo>> skuIdToCouponInfoListMap = new HashMap<>();
 
+        //  循环遍历当前的所有优惠券集合
+        for (CouponInfo couponInfo : allCouponInfoList) {
+            //  获取到优惠券下对应的skuId集合
+            List<Long> skuIdList = couponInfo.getSkuIdList();
+            //  遍历当前skuIdList
+            for (Long skuId : skuIdList) {
+                //  使用skuIdToCouponInfoListMap 这个集合判断
+                //  这个集合有对应的skuId 时， key = skuId 这个skuId 对应了多个优惠券
+                if (skuIdToCouponInfoListMap.containsKey(skuId)){
+                    //  从原有集合中获取到数据 并放入map
+                    List<CouponInfo> couponInfoList = skuIdToCouponInfoListMap.get(skuId);
+                    couponInfoList.add(couponInfo);
+                }else {
+                    //  第一次进来就走这！
+                    List<CouponInfo> couponInfoList = new ArrayList<>();
+                    couponInfoList.add(couponInfo);
+                    //  没有skuId 时
+                    skuIdToCouponInfoListMap.put(skuId,couponInfoList);
+                }
+            }
+        }
+        return skuIdToCouponInfoListMap;
+    }
 
+    //  设置优惠券对应的存储规则！ 做个初始化操作。
+    private void setRuleData(SkuInfo skuInfo, Map<String, List<Long>> rangeToSkuIdMap) {
+        //  优惠券对应的使用范围key spuId
+        //  rangeToSkuIdMap  key = key1  value = skuIdList
+        String key1 = "range:1:" + skuInfo.getSpuId(); // 1,2,3,4,5  add(6);
+        if (rangeToSkuIdMap.containsKey(key1)){
+            //  获取对应的数据
+            List<Long> skuIdList = rangeToSkuIdMap.get(key1);
+            //  将对应的skuId skuInfo.getId();
+            skuIdList.add(skuInfo.getId());
+        }else {
+            //  说明没有这个key，声明一个集合将skuId 添加进去，并保存到map 集合中！  skuId=40
+            List<Long> skuIdList = new ArrayList<>();
+            skuIdList.add(skuInfo.getId());
+            rangeToSkuIdMap.put(key1,skuIdList);
+        }
+        //  范围 category3Id
+        String key2 = "range:2:" + skuInfo.getCategory3Id();  // skuId = 40
+        if (rangeToSkuIdMap.containsKey(key2)){
+            //  获取对应的数据
+            List<Long> skuIdList = rangeToSkuIdMap.get(key2);
+            //  将对应的skuId skuInfo.getId();
+            skuIdList.add(skuInfo.getId());
 
-        return null;
+        }else {
+            //  说明没有这个key，声明一个集合将skuId 添加进去，并保存到map 集合中！
+            List<Long> skuIdList = new ArrayList<>();
+            skuIdList.add(skuInfo.getId());
+            rangeToSkuIdMap.put(key2,skuIdList);
+        }
+        //  范围 tmId
+        String key3 = "range:3:" + skuInfo.getTmId();   // skuId = 40;
+        if(rangeToSkuIdMap.containsKey(key3)) {
+            List<Long> skuIdList = rangeToSkuIdMap.get(key3);
+            skuIdList.add(skuInfo.getId());
+        } else {
+            List<Long> skuIdList = new ArrayList<>();
+            skuIdList.add(skuInfo.getId());
+            rangeToSkuIdMap.put(key3, skuIdList);
+        }
+
     }
 }

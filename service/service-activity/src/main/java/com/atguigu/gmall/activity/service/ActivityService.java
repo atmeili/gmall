@@ -1,5 +1,9 @@
 package com.atguigu.gmall.activity.service;
 
+import com.atguigu.gmall.model.cart.CarInfoVo;
+import com.atguigu.gmall.model.cart.CartInfo;
+
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -15,4 +19,12 @@ public interface ActivityService {
      * @return
      */
     Map<String, Object> findActivityAndCoupon(Long skuId, Long userId);
+
+    /**
+     * 获取购物车列表
+     * @param cartInfoList
+     * @param userId
+     * @return
+     */
+    List<CarInfoVo> findCartActivityAndCoupon(List<CartInfo> cartInfoList, Long userId);
 }

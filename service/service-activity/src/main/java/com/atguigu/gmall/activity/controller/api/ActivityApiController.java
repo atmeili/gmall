@@ -5,14 +5,13 @@ import com.atguigu.gmall.activity.service.CouponInfoService;
 import com.atguigu.gmall.common.result.Result;
 import com.atguigu.gmall.common.util.AuthContextHolder;
 import com.atguigu.gmall.model.activity.CouponInfo;
+import com.atguigu.gmall.model.cart.CarInfoVo;
+import com.atguigu.gmall.model.cart.CartInfo;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -77,5 +76,10 @@ public class ActivityApiController {
         return Result.ok(couponInfoIPage);
     }
 
-
+    //  汇总数据 促销活动列表 + 优惠券列表
+    @PostMapping("inner/findCartActivityAndCoupon/{userId}")
+    public List<CarInfoVo> findCartActivityAndCoupon(@PathVariable Long userId,@RequestBody List<CartInfo> cartInfoList){
+        //  调用服务层方法
+        return activityService.findCartActivityAndCoupon(cartInfoList,userId);
+    }
 }

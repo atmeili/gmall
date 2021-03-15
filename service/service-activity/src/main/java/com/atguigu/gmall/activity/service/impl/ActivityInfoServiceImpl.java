@@ -192,8 +192,9 @@ public class ActivityInfoServiceImpl extends ServiceImpl<ActivityInfoMapper, Act
         return activityRuleList;
     }
 
+    //  获取促销活动列表
     @Override
-    public List<CarInfoVo> findCartActivityRuleMap(List<CartInfo> cartInfoList) {
+    public List<CarInfoVo> findCartActivityRuleMap(List<CartInfo> cartInfoList, Map<Long, Long> skuIdToActivityIdMap) {
         /*
             已知 cartInfoList； 活动Id 下有哪些skuId ，通过这个skuId 能够找到CartInfo
             cartInfoList 下面有多少个skuId
@@ -243,6 +244,8 @@ public class ActivityInfoServiceImpl extends ServiceImpl<ActivityInfoMapper, Act
             List<CartInfo> cartInfos = new ArrayList<>();
             //  有了skuId 循环遍历
             for (Long skuId : activitySkuIdSet) {
+                //  记录一下skuId 对应的哪个活动Id  key = skuId value = activityId
+                skuIdToActivityIdMap.put(skuId,activityId);
                 //  获取cartInfo
                 CartInfo cartInfo = skuIdToCartInfoMap.get(skuId);
                 cartInfos.add(cartInfo);
