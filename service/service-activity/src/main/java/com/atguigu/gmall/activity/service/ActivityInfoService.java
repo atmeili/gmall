@@ -3,6 +3,8 @@ package com.atguigu.gmall.activity.service;
 import com.atguigu.gmall.model.activity.ActivityInfo;
 import com.atguigu.gmall.model.activity.ActivityRule;
 import com.atguigu.gmall.model.activity.ActivityRuleVo;
+import com.atguigu.gmall.model.cart.CarInfoVo;
+import com.atguigu.gmall.model.cart.CartInfo;
 import com.atguigu.gmall.model.product.SkuInfo;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -44,6 +46,13 @@ public interface ActivityInfoService extends IService<ActivityInfo> {
      * @return
      */
     List<ActivityRule> findActivityRule(Long skuId);
+
+    /**
+     * 获取促销活动列表
+     * @param cartInfoList
+     * @return
+     */
+    List<CarInfoVo> findCartActivityRuleMap(List<CartInfo> cartInfoList);
 
 
 }

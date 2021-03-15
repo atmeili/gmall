@@ -7,6 +7,8 @@ import com.atguigu.gmall.activity.mapper.CouponInfoMapper;
 import com.atguigu.gmall.activity.service.ActivityInfoService;
 import com.atguigu.gmall.activity.service.CouponInfoService;
 import com.atguigu.gmall.model.activity.*;
+import com.atguigu.gmall.model.cart.CarInfoVo;
+import com.atguigu.gmall.model.cart.CartInfo;
 import com.atguigu.gmall.model.enums.ActivityType;
 import com.atguigu.gmall.model.product.SkuInfo;
 import com.atguigu.gmall.product.client.ProductFeignClient;
@@ -19,10 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -191,6 +190,74 @@ public class ActivityInfoServiceImpl extends ServiceImpl<ActivityInfoMapper, Act
         List<ActivityRule> activityRuleList = activityInfoMapper.selectActivityRuleList(skuId);
         //  返回数据
         return activityRuleList;
+    }
+
+    @Override
+    public List<CarInfoVo> findCartActivityRuleMap(List<CartInfo> cartInfoList) {
+        /*
+            已知 cartInfoList； 活动Id 下有哪些skuId ，通过这个skuId 能够找到CartInfo
+            cartInfoList 下面有多少个skuId
+         */
+        List<CarInfoVo> carInfoVoList = new ArrayList<>();
+
+        //  定义map 集合 key=skuId value = cartInfo;
+        Map<Long, CartInfo> skuIdToCartInfoMap = new HashMap<>();
+        for (CartInfo cartInfo : cartInfoList) {
+            skuIdToCartInfoMap.put(cartInfo.getSkuId(),cartInfo);
+        }
+        //  获取到skuId 集合列表
+        List<Long> skuIdList = cartInfoList.stream().map(CartInfo::getSkuId).collect(Collectors.toList());
+
+        if (CollectionUtils.isEmpty(skuIdList)) return new ArrayList<>();
+
+        //  找到对应的活动规则 : 这个方法给skuId 进行赋值！
+        List<ActivityRule> activityRuleList = activityInfoMapper.selectCartActivityRuleList(skuIdList);
+
+        //  以skuId 进行分组 key = skuId value = List<ActivityRule>
+        Map<Long, List<ActivityRule>> skuIdToActivityRuleListMap = activityRuleList.stream().collect(Collectors.groupingBy(activityRule -> activityRule.getSkuId()));
+
+
+        //  ActivityRule 这个实体类中封装过了一个 skuId
+        //  以activityId 进行分组
+        //  key = activityId value = List<ActivityRule>
+        Map<Long, List<ActivityRule>> activityIdToActivityRuleListAllMap = activityRuleList.stream().collect(Collectors.groupingBy(activityRule -> activityRule.getActivityId()));
+
+        //  循环遍历获取数据
+        Iterator<Map.Entry<Long, List<ActivityRule>>> iterator = activityIdToActivityRuleListAllMap.entrySet().iterator();
+        while (iterator.hasNext()){
+            //  获取数据
+            Map.Entry<Long, List<ActivityRule>> entry = iterator.next();
+            //  获取key
+            Long activityId = entry.getKey();
+            //  获取value
+            List<ActivityRule> currentActivityRuleList = entry.getValue();
+
+            //  活动规则下有哪些skuId? ActivityRule 这个对象中已经有skuId , 获取skuId ,活动规则对应的skuId
+            //  分组的话：不能重复！ 但是返回的是map 集合，我们需要的是skuId 集合列表！
+            //  40 ,41 ,42, 43
+            Set<Long> activitySkuIdSet = currentActivityRuleList.stream().map(activityRule -> activityRule.getSkuId()).collect(Collectors.toSet());
+
+            //  声明一个对象：CarInfoVo
+            CarInfoVo carInfoVo = new CarInfoVo();
+
+            List<CartInfo> cartInfos = new ArrayList<>();
+            //  有了skuId 循环遍历
+            for (Long skuId : activitySkuIdSet) {
+                //  获取cartInfo
+                CartInfo cartInfo = skuIdToCartInfoMap.get(skuId);
+                cartInfos.add(cartInfo);
+            }
+            carInfoVo.setCartInfoList(cartInfos);
+
+            //  根据skuId 获取对应的活动规则
+            //  所有的skuId集合
+            List<ActivityRule> ruleList = skuIdToActivityRuleListMap.get(activitySkuIdSet.iterator().next());
+            carInfoVo.setActivityRuleList(ruleList);
+            //  添加数据到集合
+            carInfoVoList.add(carInfoVo);
+        }
+
+        return carInfoVoList;
     }
 
 

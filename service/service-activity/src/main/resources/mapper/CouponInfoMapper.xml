@@ -51,7 +51,6 @@
         AND now() BETWEEN info.start_time
         AND info.end_time
         AND info.activity_id IS NULL
-
         ORDER BY
             info.benefit_amount DESC,
             info.benefit_discount ASC;

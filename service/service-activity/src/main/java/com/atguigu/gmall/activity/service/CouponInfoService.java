@@ -2,6 +2,7 @@ package com.atguigu.gmall.activity.service;
 
 import com.atguigu.gmall.model.activity.CouponInfo;
 import com.atguigu.gmall.model.activity.CouponRuleVo;
+import com.atguigu.gmall.model.cart.CartInfo;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -62,4 +63,13 @@ public interface CouponInfoService extends IService<CouponInfo> {
      * @return
      */
     IPage<CouponInfo> getPageByUserId(Page<CouponInfo> couponInfoPage, Long userId);
+
+    /**
+     * 获取优惠券列表
+     * @param cartInfoList
+     * @param skuIdToActivityIdMap
+     * @param userId
+     * @return
+     */
+    Map<Long, List<CouponInfo>> findCartCouponInfo(List<CartInfo> cartInfoList, Map<Long, Long> skuIdToActivityIdMap, Long userId);
 }

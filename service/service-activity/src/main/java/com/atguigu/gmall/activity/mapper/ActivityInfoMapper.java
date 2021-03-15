@@ -24,4 +24,11 @@ public interface ActivityInfoMapper extends BaseMapper<ActivityInfo> {
      * @return
      */
     List<ActivityRule> selectActivityRuleList(Long skuId);
+
+    /**
+     * 根据skuIdList查询活动规则列表
+     * @param skuIdList
+     * @return
+     */
+    List<ActivityRule> selectCartActivityRuleList(@Param("skuIdList") List<Long> skuIdList);
 }

@@ -10,6 +10,7 @@ import com.atguigu.gmall.model.activity.CouponInfo;
 import com.atguigu.gmall.model.activity.CouponRange;
 import com.atguigu.gmall.model.activity.CouponRuleVo;
 import com.atguigu.gmall.model.activity.CouponUse;
+import com.atguigu.gmall.model.cart.CartInfo;
 import com.atguigu.gmall.model.enums.CouponRangeType;
 import com.atguigu.gmall.model.enums.CouponStatus;
 import com.atguigu.gmall.model.enums.CouponType;
@@ -219,5 +220,44 @@ public class CouponInfoServiceImpl extends ServiceImpl<CouponInfoMapper, CouponI
     public IPage<CouponInfo> getPageByUserId(Page<CouponInfo> couponInfoPage, Long userId) {
         //  coupon_info,coupon_use
         return couponInfoMapper.selectPageByUserId(couponInfoPage,userId);
+    }
+
+    /**
+     * map key = skuId  value = List<CouponInfo>
+     * @param cartInfoList 购物车列表
+     * @param skuIdToActivityIdMap  判断当前skuId 是否参与了活动
+     * @param userId 判断是否已经领用！
+     * @return
+     */
+    @Override
+    public Map<Long, List<CouponInfo>> findCartCouponInfo(List<CartInfo> cartInfoList, Map<Long, Long> skuIdToActivityIdMap, Long userId) {
+        /**
+         * rangeType(范围类型)  1:商品(spuId) 2:品类(category3Id) 3:品牌tmId
+         * rangeId(范围id) spuId, categoryId , tmId,
+         * 同一张优惠券不能包含多个范围类型，同一张优惠券可以对应同一范围类型的多个范围id（即：同一张优惠券可以包含多个spuId）
+         * 示例数据：
+         * couponId   rangeType   rangeId
+         * 1             1             20
+         * 1             1             30
+         * 2             2             20
+         */
+        // 通过skuId 获取到skuInfo ,skuInfo 中  spuId, categoryId , tmId 都存在！
+        //  声明一个集合来存储skuInfo
+        List<SkuInfo> skuInfoList = new ArrayList<>();
+        //  循环赋值
+        for (CartInfo cartInfo : cartInfoList) {
+            SkuInfo skuInfo = productFeignClient.getSkuInfo(cartInfo.getSkuId());
+            skuInfoList.add(skuInfo);
+        }
+        //  查询优惠券列表我们需要优惠券使用范围类型rangeType  rangeId  userId
+        List<CouponInfo> allCouponInfoList = couponInfoMapper.selectCartCouponInfoList(skuInfoList,userId);
+
+        //
+
+
+
+
+
+        return null;
     }
 }
